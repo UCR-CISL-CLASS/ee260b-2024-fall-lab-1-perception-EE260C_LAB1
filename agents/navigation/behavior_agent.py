@@ -22,6 +22,10 @@ from agents.tools.misc import get_speed, positive, is_within_distance, compute_d
 from detector import Detector  # pylint: disable=import-rror
 from shapely.geometry import Polygon
 
+import pdb
+from PIL import Image
+import cv2
+
 class BehaviorAgent(BasicAgent):
     """
     BehaviorAgent implements an agent that navigates scenes to reach a given
@@ -337,11 +341,35 @@ class BehaviorAgent(BasicAgent):
         detection_results["det_score"] = np.array(detection_results["det_score"])
         return detection_results
 
+    def visualizer(self, sensor_data, det, gt_det, debug=False):
+        '''
+        Visualize gt and det bounding boxes.
+            :sensor_data: python dict with data from sensors attached to ego vehicle
+            :det: predicted bounding boxes
+            :gt_det: groundtruth bounding boxes
+            :param debug: boolean for debugging
+        '''
 
-    def run_step(self, debug=False):
+        for sensor in sensor_data:
+            if 'rgb' in sensor.lower():
+                # Camera sensor
+                img = sensor_data[sensor][1]
+                rgb_image = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
+                cv2.namedWindow(sensor.lower(), cv2.WINDOW_NORMAL)  # Create named window
+                cv2.imshow(sensor.lower(), rgb_image)
+                cv2.waitKey(1)  # Update the window without blocking[3]
+                # pdb.set_trace()
+
+            elif 'lidar' in sensor.lower():
+                # LiDAR Sensor
+                lidar_points = sensor_data[sensor][1]
+            
+
+
+    def run_step(self, screen, debug=False):
         """
         Execute one step of navigation.
-
+            :param screen: pygame window
             :param debug: boolean for debugging
             :return control: carla.VehicleControl
         """
@@ -356,7 +384,10 @@ class BehaviorAgent(BasicAgent):
             det_boxes = detections["det_boxes"]
         if "det_score" in detections:
             det_score = detections["det_score"]
-            
+
+        # Visualize sensors and detection
+        self.visualizer(sensor_data, detections, gt_detections)
+
         caluclate_tp_fp(det_boxes, det_score, gt_detections["det_boxes"], self.result_stat, iou_thresh=0.3)
         caluclate_tp_fp(det_boxes, det_score, gt_detections["det_boxes"], self.result_stat, iou_thresh=0.5)
         caluclate_tp_fp(det_boxes, det_score, gt_detections["det_boxes"], self.result_stat, iou_thresh=0.7)

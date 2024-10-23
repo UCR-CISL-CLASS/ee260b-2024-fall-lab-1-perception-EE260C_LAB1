@@ -15,6 +15,8 @@ import carla
 
 from agents.navigation.sensor_interface import CallBack
 
+import cv2
+import numpy as np
 
 class AgentWrapper(object):
 

@@ -760,6 +760,13 @@ def game_loop(args):
 
         clock = pygame.time.Clock()
 
+        # Set visualization pygame window
+        # Initialize Pygame
+        pygame.init()
+
+        # Create display window
+        screen = pygame.display.set_mode((args.width, args.height))  # Replace width/height with your array dimensions
+
         while True:
             clock.tick()
             if args.sync:
@@ -782,7 +789,7 @@ def game_loop(args):
                     print("The target has been reached, stopping the simulation")
                     break
 
-            control = agent.run_step()
+            control = agent.run_step(screen)
             if control is not None:
                 control.manual_gear_shift = False
                 world.player.apply_control(control)
